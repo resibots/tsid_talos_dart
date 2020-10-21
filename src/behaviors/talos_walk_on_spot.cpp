@@ -25,11 +25,11 @@ namespace inria_wbc {
         {
             cycle_ = {
                 States::INIT, // will be skipped
-                States::LIFT_UP_LF,
-                States::LIFT_DOWN_LF,
+                // States::LIFT_UP_LF,
+                // States::LIFT_DOWN_LF,
                 States::MOVE_COM_LEFT,
-                States::LIFT_UP_RF,
-                States::LIFT_DOWN_RF,
+                // States::LIFT_UP_RF,
+                // States::LIFT_DOWN_RF,
                 States::MOVE_COM_RIGHT};
 
             auto controller = std::static_pointer_cast<inria_wbc::controllers::TalosPosTracking>(controller_);

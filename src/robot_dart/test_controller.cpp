@@ -9,12 +9,14 @@
 #include <robot_dart/control/pd_control.hpp>
 #include <robot_dart/robot.hpp>
 #include <robot_dart/robot_dart_simu.hpp>
+#include <robot_dart/sensor/force_torque.hpp>
 
 #ifdef GRAPHIC
 #include <robot_dart/gui/magnum/graphics.hpp>
 #endif
 
 #include "inria_wbc/behaviors/factory.hpp"
+#include "inria_wbc/estimators/cop.hpp"
 
 Eigen::VectorXd compute_spd(dart::dynamics::SkeletonPtr robot, const Eigen::VectorXd& targetpos)
 {
@@ -197,6 +199,11 @@ int main(int argc, char* argv[])
         ghost->skeleton()->setPosition(5, 1.1);
         simu.add_robot(ghost);
     }
+
+    inria_wbc::estimators::Cop cop_estimator;
+    auto ft_sensor_left = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_left_6_joint");
+    auto ft_sensor_right = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_right_6_joint");
+
     // the main loop
     using namespace std::chrono;
     while (simu.scheduler().next_time() < vm["duration"].as<int>() && !simu.graphics()->done()) {
@@ -242,6 +249,12 @@ int main(int argc, char* argv[])
             time_step_simu = duration_cast<microseconds>(t2_simu - t1_simu).count();
             ++it_simu;
         }
+        // simulation frequency for now
+        auto cop = cop_estimator.update(
+            controller->left_ankle().translation(),
+            controller->right_ankle().translation(),
+            ft_sensor_left->torque(), ft_sensor_left->force(),
+            ft_sensor_right->torque(), ft_sensor_right->force());
 
         // log if needed
         for (auto& x : log_files) {
@@ -251,6 +264,11 @@ int main(int argc, char* argv[])
                 (*x.second) << cmd.transpose() << std::endl;
             else if (x.first == "com")
                 (*x.second) << robot->com().transpose() << std::endl;
+            else if (x.first == "cop")
+                (*x.second) << cop.transpose() << std::endl;
+            else if (x.first == "ft")
+                (*x.second) << ft_sensor_left->torque().transpose() << " " << ft_sensor_left->force().transpose() << " "
+                            << ft_sensor_right->torque().transpose() << " " << ft_sensor_right->force().transpose() << std::endl;
             else
                 (*x.second) << robot->body_pose(x.first).translation() << "\t" << robot->body_pose(x.first).rotation() << std::endl;
         }
