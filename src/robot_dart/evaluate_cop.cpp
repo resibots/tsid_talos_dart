@@ -36,7 +36,6 @@ Eigen::Vector2d evaluate_cop(
     Eigen::Vector2d cop_in_lft_raw = Fz_ratio_l * lcop_raw + Fz_ratio_r * (rcop_raw + rf_pos.head(2) - lf_pos.head(2));
     Eigen::Vector2d cop_in_rft_raw = Fz_ratio_l * (lcop_raw + lf_pos.head(2) - rf_pos.head(2)) + Fz_ratio_r * rcop_raw;
     Eigen::Vector2d cop = cop_in_lft_raw * Fz_ratio_l + cop_in_rft_raw * Fz_ratio_r;
-    std::cout << "Global raw CoP :   x : " << cop(0) << "  y : " << cop(1) << std::endl;
     return cop;
 }
 
@@ -103,18 +102,13 @@ int main(int argc, char* argv[])
     simu.set_control_freq(1000); // 1000 Hz
     while (!simu.graphics()->done()) {
         if (simu.schedule(simu.control_freq())) {
-            lf_torque_force = robot->force_torque(robot->joint_index("leg_left_6_joint"));
-            std::cout << "FT pose" << ft_sensor_left->pose().translation().transpose() << std::endl;
-            std::cout << "FT pose" << ft_sensor_right->pose().translation().transpose() << std::endl;
-            std::cout << "pos from child:" << t_from_child_body.transpose() << std::endl;
-            std::cout << "pinocchio:" << controller->right_ankle().translation().transpose() << std::endl;
-            auto lf2 = ft_sensor_left->force();
-            rf_torque_force = robot->force_torque(robot->joint_index("leg_right_6_joint"));
-            evaluate_cop(controller->left_ankle().translation(),
+            auto cop = evaluate_cop(controller->left_ankle().translation(),
                 controller->right_ankle().translation(),
                 ft_sensor_left->torque(), ft_sensor_left->force(),
                 ft_sensor_right->torque(), ft_sensor_right->force());
-            std::cout << "CoM:" << robot->com().transpose() << std::endl;
+            std::cout << "CoP:" << cop.transpose() << std::endl;
+            std::cout << "CoM (dart):" << robot->com().transpose() << std::endl;
+            std::cout << "CoM (tsid):" << controller->com().transpose() << std::endl;
         }
         simu.step_world();
     }

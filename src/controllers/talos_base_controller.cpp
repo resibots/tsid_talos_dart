@@ -323,5 +323,10 @@ namespace inria_wbc {
             return robot_->position(tsid_->data(), robot_->model().getJointId("leg_left_6_joint"));
         }
 
+        const Eigen::Vector3d& TalosBaseController::com() const
+        {
+            return robot_->com(tsid_->data());
+        }
+
     } // namespace controllers
 } // namespace inria_wbc

@@ -79,6 +79,7 @@ namespace inria_wbc {
 
             const pinocchio::SE3& right_ankle() const;
             const pinocchio::SE3& left_ankle() const;
+            const Eigen::Vector3d& com() const;
 
             // Removes the universe and root (floating base) joint names
             std::vector<std::string> controllable_dofs(bool filter_mimics = true);
