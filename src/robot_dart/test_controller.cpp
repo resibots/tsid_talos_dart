@@ -16,6 +16,7 @@
 #endif
 
 #include "inria_wbc/behaviors/factory.hpp"
+#include "inria_wbc/estimators/butterworth_filter.hpp"
 #include "inria_wbc/estimators/cop.hpp"
 
 Eigen::VectorXd compute_spd(dart::dynamics::SkeletonPtr robot, const Eigen::VectorXd& targetpos)
@@ -161,7 +162,7 @@ int main(int argc, char* argv[])
         "../etc/talos_configurations.srdf",
         sot_config_path,
         "",
-        dt,
+        0.001,
         verbose,
         robot->mimic_dof_names()};
 
@@ -203,6 +204,7 @@ int main(int argc, char* argv[])
     inria_wbc::estimators::Cop cop_estimator;
     auto ft_sensor_left = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_left_6_joint");
     auto ft_sensor_right = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_right_6_joint");
+    inria_wbc::estimators::ButterworthFilter filter_cop_x(0.002, 10), filter_cop_y(0.002, 10);
 
     // the main loop
     using namespace std::chrono;
@@ -241,6 +243,12 @@ int main(int argc, char* argv[])
             }
             ++it_cmd;
         }
+        if (simu.scheduler().current_time() > 1 && simu.scheduler().current_time() < 1.25) {
+            robot->set_external_force("torso_2_link", Eigen::Vector3d(-100, 0, 0));
+        }
+        if (simu.scheduler().current_time() > 1.25 && simu.scheduler().current_time() < 1.5)
+            robot->clear_external_forces();
+
         // step the simulation
         {
             auto t1_simu = high_resolution_clock::now();
@@ -255,6 +263,8 @@ int main(int argc, char* argv[])
             controller->right_ankle().translation(),
             ft_sensor_left->torque(), ft_sensor_left->force(),
             ft_sensor_right->torque(), ft_sensor_right->force());
+        double cop_x_f = filter_cop_x.filter(cop[0]);
+        double cop_y_f = filter_cop_x.filter(cop[1]);
 
         // log if needed
         for (auto& x : log_files) {
@@ -262,10 +272,14 @@ int main(int argc, char* argv[])
                 (*x.second) << time_step_solver / 1000.0 << "\t" << time_step_cmd / 1000.0 << "\t" << time_step_simu / 1000.0 << std::endl;
             else if (x.first == "cmd")
                 (*x.second) << cmd.transpose() << std::endl;
-            else if (x.first == "com")
+            else if (x.first == "com_dart")
                 (*x.second) << robot->com().transpose() << std::endl;
+            else if (x.first == "com_tsid")
+                (*x.second) << controller->com().transpose() << std::endl;
             else if (x.first == "cop")
                 (*x.second) << cop.transpose() << std::endl;
+            else if (x.first == "cop_filtered")
+                (*x.second) << cop_x_f << " " << cop_y_f << std::endl;
             else if (x.first == "ft")
                 (*x.second) << ft_sensor_left->torque().transpose() << " " << ft_sensor_left->force().transpose() << " "
                             << ft_sensor_right->torque().transpose() << " " << ft_sensor_right->force().transpose() << std::endl;
