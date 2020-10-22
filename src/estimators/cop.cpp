@@ -1,3 +1,5 @@
+#include <numeric>
+
 #include <inria_wbc/estimators/cop.hpp>
 
 namespace inria_wbc {
@@ -7,8 +9,15 @@ namespace inria_wbc {
             const Eigen::Vector3d& lf_torque, const Eigen::Vector3d& lf_force,
             const Eigen::Vector3d& rf_torque, const Eigen::Vector3d& rf_force)
         {
-            _cop = _compute_cop(lf_pos, rf_pos, lf_torque, lf_force, rf_torque, rf_force);
-            return _cop;
+            _cop_raw = _compute_cop(lf_pos, rf_pos, lf_torque, lf_force, rf_torque, rf_force);
+            // store history
+            _history.push_back(_cop_raw);
+            if (_history.size() > _history_size)
+                _history.pop_front();
+            // moving average filtering : average the values in history
+            _cop_filtered
+                = std::accumulate(_history.begin(), _history.end(), (Eigen::Vector2d)Eigen::Vector2d::Zero()) / _history.size();
+            return _cop_filtered;
         }
 
         // Intro to humanoid robotics (Kajita et al.), p80, 3.26

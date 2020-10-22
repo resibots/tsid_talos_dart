@@ -243,11 +243,11 @@ int main(int argc, char* argv[])
             }
             ++it_cmd;
         }
-        if (simu.scheduler().current_time() > 1 && simu.scheduler().current_time() < 1.25) {
-            robot->set_external_force("torso_2_link", Eigen::Vector3d(-100, 0, 0));
-        }
-        if (simu.scheduler().current_time() > 1.25 && simu.scheduler().current_time() < 1.5)
-            robot->clear_external_forces();
+        // if (simu.scheduler().current_time() > 1 && simu.scheduler().current_time() < 1.25) {
+        //     robot->set_external_force("torso_2_link", Eigen::Vector3d(-100, 0, 0));
+        // }
+        // if (simu.scheduler().current_time() > 1.25 && simu.scheduler().current_time() < 1.5)
+        //     robot->clear_external_forces();
 
         // step the simulation
         {
@@ -263,8 +263,6 @@ int main(int argc, char* argv[])
             controller->right_ankle().translation(),
             ft_sensor_left->torque(), ft_sensor_left->force(),
             ft_sensor_right->torque(), ft_sensor_right->force());
-        double cop_x_f = filter_cop_x.filter(cop[0]);
-        double cop_y_f = filter_cop_x.filter(cop[1]);
 
         // log if needed
         for (auto& x : log_files) {
@@ -278,8 +276,8 @@ int main(int argc, char* argv[])
                 (*x.second) << controller->com().transpose() << std::endl;
             else if (x.first == "cop")
                 (*x.second) << cop.transpose() << std::endl;
-            else if (x.first == "cop_filtered")
-                (*x.second) << cop_x_f << " " << cop_y_f << std::endl;
+            else if (x.first == "cop_raw")
+                (*x.second) << cop_estimator.cop_raw().transpose() << std::endl;
             else if (x.first == "ft")
                 (*x.second) << ft_sensor_left->torque().transpose() << " " << ft_sensor_left->force().transpose() << " "
                             << ft_sensor_right->torque().transpose() << " " << ft_sensor_right->force().transpose() << std::endl;
