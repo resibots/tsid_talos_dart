@@ -85,10 +85,8 @@ namespace inria_wbc {
             virtual ~TalosBaseController(){};
 
             virtual bool update(const SensorData& sensor_data) { return _solve(); };
-
-            const pinocchio::SE3& right_ankle() const;
-            const pinocchio::SE3& left_ankle() const;
             const Eigen::Vector3d& com() const;
+            virtual const Eigen::Vector2d& cop() const { assert(0); }
 
             // Removes the universe and root (floating base) joint names
             std::vector<std::string> controllable_dofs(bool filter_mimics = true);

@@ -19,6 +19,13 @@ SOT:
   kp_rf: 30.0
   kp_lf: 30.0
   kp_torso: 30.0
+STABILIZER:
+  activated: true
+  filter_size: 5
+  p_x: 0.055
+  p_y: 0.055
+  d_x: 0.0
+  d_y: 0.0
 BEHAVIOR:
   name : talos-squat
   trajectory_duration : 5

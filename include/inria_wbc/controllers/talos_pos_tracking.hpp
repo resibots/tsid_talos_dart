@@ -2,6 +2,7 @@
 #define IWBC_POS_TRACKING_HPP
 
 #include <inria_wbc/controllers/talos_base_controller.hpp>
+#include <inria_wbc/estimators/cop.hpp>
 
 namespace inria_wbc {
     namespace controllers {
@@ -14,19 +15,18 @@ namespace inria_wbc {
 
             virtual bool update(const SensorData& sensor_data) override;
 
-            std::shared_ptr<tsid::tasks::TaskComEquality> com_task() { return com_task_; }
-
-            pinocchio::SE3 get_se3_ref(const std::string& task_name);
-            tsid::math::Vector3 get_pinocchio_com();
+            const pinocchio::SE3& se3_ref(const std::string& task_name) const;
+            const pinocchio::SE3& model_joint_pos(const std::string& joint_name) const;
+            const tsid::math::Vector3& model_com() const;
+            const Eigen::Vector2d& cop() const override;
 
             void set_com_ref(const tsid::math::Vector3& ref);
             void set_se3_ref(const pinocchio::SE3& ref, const std::string& task_name);
             void set_posture_ref(const tsid::math::Vector& ref, const std::string& task_name);
 
+            std::shared_ptr<tsid::tasks::TaskComEquality> com_task() { return com_task_; }
             void remove_contact(const std::string& contact_name);
             void add_contact(const std::string& contact_name);
-            pinocchio::SE3 get_RF_SE3();
-            pinocchio::SE3 get_LF_SE3();
 
             virtual const opt_params_t& opt_params() const override { return params_.opt_params; }
 
@@ -35,6 +35,12 @@ namespace inria_wbc {
             void set_stack_configuration();
             void init_references();
             void set_default_opt_params(std::map<std::string, double>& p);
+
+            // stabilizer
+            estimators::Cop _cop_estimator;
+            bool _use_stabilizer = true;
+            Eigen::Vector2d _stabilizer_p = Eigen::Vector2d(0.005, 0.005);
+            Eigen::Vector2d _stabilizer_d = Eigen::Vector2d(0, 0);
 
             // TALOS CONFIG
             double lxp_ = 0.1; // foot length in positive x direction

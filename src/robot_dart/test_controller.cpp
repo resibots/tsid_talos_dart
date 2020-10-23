@@ -253,8 +253,8 @@ int main(int argc, char* argv[])
         if (vm.count("push")) {
             auto pv = vm["push"].as<std::vector<float>>();
             for (auto& p : pv) {
-                if (simu.scheduler().current_time() > p && simu.scheduler().current_time() < p + 0.25) {
-                    robot->set_external_force("torso_2_link", Eigen::Vector3d(-100, 0, 0));
+                if (simu.scheduler().current_time() > p && simu.scheduler().current_time() < p + 0.5) {
+                    robot->set_external_force("base_link", Eigen::Vector3d(-150, 0, 0));
                     push = true;
                 }
                 if (simu.scheduler().current_time() > p + 0.25)
@@ -270,13 +270,6 @@ int main(int argc, char* argv[])
             time_step_simu = duration_cast<microseconds>(t2_simu - t1_simu).count();
             ++it_simu;
         }
-        // simulation frequency for now
-
-        bool cop_ok = cop_estimator.update(Eigen::Vector2d::Zero(),
-            controller->left_ankle().translation(),
-            controller->right_ankle().translation(),
-            ft_sensor_left->torque(), ft_sensor_left->force(),
-            ft_sensor_right->torque(), ft_sensor_right->force());
 
         // log if needed
         for (auto& x : log_files) {
@@ -289,9 +282,7 @@ int main(int argc, char* argv[])
             else if (x.first == "com_tsid")
                 (*x.second) << controller->com().transpose() << std::endl;
             else if (x.first == "cop")
-                (*x.second) << cop_estimator.cop_filtered().transpose() << std::endl;
-            else if (x.first == "cop_raw")
-                (*x.second) << cop_estimator.cop_raw().transpose() << std::endl;
+                (*x.second) << controller->cop().transpose() << std::endl;
             else if (x.first == "ft")
                 (*x.second) << ft_sensor_left->torque().transpose() << " " << ft_sensor_left->force().transpose() << " "
                             << ft_sensor_right->torque().transpose() << " " << ft_sensor_right->force().transpose() << std::endl;

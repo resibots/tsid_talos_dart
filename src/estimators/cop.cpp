@@ -31,11 +31,15 @@ namespace inria_wbc {
             Eigen::Vector2d prev_error = (prev_cop_filtered - _prev_ref);
             Eigen::Vector2d error = (_cop_filtered - ref);
             _derror_raw = (error - prev_error) / _sample_time;
-            _store(_derror_raw, _derror_buffer, _history_size);
+            if (_cop_buffer.size() > 1) // first value does not make sense
+                _store(_derror_raw, _derror_buffer, _history_size);
             _derror_filtered
                 = std::accumulate(_derror_buffer.begin(), _derror_buffer.end(), (Eigen::Vector2d)Eigen::Vector2d::Zero()) / _derror_buffer.size();
             _prev_ref = ref;
             // note: IIT uses weighted averages... here we use standard moving average.
+            // we are not ready until we have filled the buffer
+            if (_derror_buffer.size() < _history_size)
+                return false;
             return true;
         }
 

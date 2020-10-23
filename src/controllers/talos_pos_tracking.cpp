@@ -105,6 +105,22 @@ namespace inria_wbc {
                     if (params_.opt_params.find(x.first) == params_.opt_params.end())
                         if (!parse(params_.opt_params[x.first], x.first, config, verbose_))
                             params_.opt_params[x.first] = p[x.first];
+
+                // stabilizer
+                inria_wbc::utils::parse(_use_stabilizer, "activated", config, false, "STABILIZER");
+                inria_wbc::utils::parse(_stabilizer_p(0), "p_x", config, false, "STABILIZER");
+                inria_wbc::utils::parse(_stabilizer_p(1), "p_y", config, false, "STABILIZER");
+                inria_wbc::utils::parse(_stabilizer_d(0), "d_x", config, false, "STABILIZER");
+                inria_wbc::utils::parse(_stabilizer_d(1), "d_y", config, false, "STABILIZER");
+                int history = _cop_estimator.history_size();
+                inria_wbc::utils::parse(history, "filter_size", config, false, "STABILIZER");
+                _cop_estimator.set_history_size(history);
+
+                if (verbose_) {
+                    std::cout << "Stabilizer:" << _use_stabilizer << std::endl;
+                    std::cout << "P:" << _stabilizer_p.transpose() << std::endl;
+                    std::cout << "D:" << _stabilizer_d.transpose() << std::endl;
+                }
             }
         }
 
@@ -302,23 +318,44 @@ namespace inria_wbc {
 
         bool TalosPosTracking::update(const SensorData& sensor_data)
         {
-            // modify the CoM reference (stabilizer)
+            // get the actual reference
+            auto com_ref = com_task_->getReference().pos;
+
+            // estimate the CoP / ZMP
+            bool cop_ok = _cop_estimator.update(com_ref.head(2),
+                model_joint_pos("leg_left_6_joint").translation(),
+                model_joint_pos("leg_right_6_joint").translation(),
+                sensor_data.lf_torque, sensor_data.lf_force,
+                sensor_data.rf_torque, sensor_data.rf_force);
+
+            // modify the CoM reference (stabilizer) if the CoP is valid
+            if (_use_stabilizer && cop_ok && !isnan(_cop_estimator.cop_filtered()(0)) && !isnan(_cop_estimator.cop_filtered()(1))) {
+                Eigen::VectorXd cor = _stabilizer_p.array() * (com_ref.head(2) - _cop_estimator.cop_filtered()).array()
+                    + _stabilizer_d.array() * _cop_estimator.derror_filtered().array();
+                Eigen::VectorXd ref_m = com_ref - Eigen::Vector3d(cor(0), cor(1), 0);
+
+                set_com_ref(ref_m);
+            }
 
             // solve everything
             return _solve();
         }
 
-        pinocchio::SE3 TalosPosTracking::get_se3_ref(const std::string& task_name)
+        const pinocchio::SE3& TalosPosTracking::se3_ref(const std::string& task_name) const
         {
             auto it = se3_task_traj_map_.find(task_name);
             assert(it != se3_task_traj_map_.end());
-            auto task_traj = it->second;
-            return task_traj.ref;
+            return it->second.ref;
         }
 
-        tsid::math::Vector3 TalosPosTracking::get_pinocchio_com()
+        const pinocchio::SE3& TalosPosTracking::model_joint_pos(const std::string& joint_name) const
         {
-            return robot_->com(tsid_->data());
+            return robot_->position(tsid_->data(), robot_->model().getJointId(joint_name));
+        }
+
+        const Eigen::Vector2d& TalosPosTracking::cop() const
+        {
+            return _cop_estimator.cop_filtered();
         }
 
         void TalosPosTracking::set_se3_ref(const pinocchio::SE3& ref, const std::string& task_name)
@@ -369,16 +406,5 @@ namespace inria_wbc {
                 std::cout << "unknown contact" << std::endl;
             }
         }
-
-        pinocchio::SE3 TalosPosTracking::get_RF_SE3()
-        {
-            return robot_->position(tsid_->data(), robot_->model().getJointId("leg_right_6_joint"));
-        }
-
-        pinocchio::SE3 TalosPosTracking::get_LF_SE3()
-        {
-            return robot_->position(tsid_->data(), robot_->model().getJointId("leg_left_6_joint"));
-        }
-
     } // namespace controllers
 } // namespace inria_wbc

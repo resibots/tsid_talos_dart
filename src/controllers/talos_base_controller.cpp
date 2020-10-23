@@ -313,16 +313,6 @@ namespace inria_wbc {
             return params;
         }
 
-        const pinocchio::SE3& TalosBaseController::right_ankle() const
-        {
-            return robot_->position(tsid_->data(), robot_->model().getJointId("leg_right_6_joint"));
-        }
-
-        const pinocchio::SE3& TalosBaseController::left_ankle() const
-        {
-            return robot_->position(tsid_->data(), robot_->model().getJointId("leg_left_6_joint"));
-        }
-
         const Eigen::Vector3d& TalosBaseController::com() const
         {
             return robot_->com(tsid_->data());

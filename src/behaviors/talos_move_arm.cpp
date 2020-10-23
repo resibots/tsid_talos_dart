@@ -9,7 +9,7 @@ namespace inria_wbc {
 
             //////////////////// DEFINE COM TRAJECTORIES  //////////////////////////////////////
             traj_selector_ = 0;
-            auto lh_init = std::static_pointer_cast<inria_wbc::controllers::TalosPosTracking>(controller_)->get_se3_ref("lh");
+            auto lh_init = std::static_pointer_cast<inria_wbc::controllers::TalosPosTracking>(controller_)->se3_ref("lh");
 
             YAML::Node config = YAML::LoadFile(controller_->params().sot_config_path);
             inria_wbc::utils::parse(trajectory_duration_, "trajectory_duration", config, false, "BEHAVIOR");

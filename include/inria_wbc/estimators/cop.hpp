@@ -11,7 +11,7 @@ namespace inria_wbc {
         // computes the CoP with the FT sensors + a filter
         class Cop {
         public:
-            Cop(double sample_time = 0.001, size_t history_size = 50)
+            Cop(double sample_time = 0.001, size_t history_size = 5)
                 : _sample_time(sample_time),
                   _history_size(history_size) {}
 
@@ -21,7 +21,10 @@ namespace inria_wbc {
                 const Eigen::Vector3d& lf_pos, const Eigen::Vector3d& rf_pos,
                 const Eigen::Vector3d& lf_torque, const Eigen::Vector3d& lf_force,
                 const Eigen::Vector3d& rf_torque, const Eigen::Vector3d& rf_force);
-            // estimates of
+            void set_history_size(size_t h) { _history_size = h; }
+            size_t history_size() const { return _history_size; }
+            void set_sample_time(size_t t) { _sample_time = t; }
+            // estimates of cop
             const Eigen::Vector2d& cop_filtered() const { return _cop_filtered; }
             const Eigen::Vector2d& cop_raw() const { return _cop_raw; }
             // derivatives of the error (cop - ref)
