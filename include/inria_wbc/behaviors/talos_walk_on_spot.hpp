@@ -6,6 +6,7 @@
 
 #include <inria_wbc/behaviors/factory.hpp>
 #include <inria_wbc/controllers/talos_pos_tracking.hpp>
+#include <inria_wbc/estimators/cop.hpp>
 #include <inria_wbc/utils/trajectory_handler.hpp>
 
 namespace inria_wbc {
@@ -16,7 +17,7 @@ namespace inria_wbc {
             WalkOnSpot(const inria_wbc::controllers::TalosBaseController::Params& params);
             WalkOnSpot() = delete;
             WalkOnSpot(const WalkOnSpot& otehr) = default;
-            bool update() override;
+            bool update(const controllers::SensorData& sensor_data) override;
 
         private:
             void _generate_trajectories();
@@ -33,6 +34,7 @@ namespace inria_wbc {
             float traj_com_duration_ = 3; //will be changed if specified in yaml
             float traj_foot_duration_ = 3; //will be changed if specified in yaml
             float step_height_ = 0.1;
+            estimators::Cop _cop_estimator;
 
             // State machine stats for walking on the spot cycle
             int state_ = -1;

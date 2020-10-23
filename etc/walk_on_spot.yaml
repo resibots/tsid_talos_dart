@@ -20,10 +20,15 @@ SOT:
   kp_rf: 3000.0
   kp_lf: 3000.0
   kp_torso: 30.0
+STABILIZER:
+  p_x: 0.01
+  p_y: 0.01
+  d_x: 0.001
+  d_y: 0.001
 BEHAVIOR:
   name : walk-on-spot
-  traj_com_duration : 2.5
-  traj_foot_duration : 3
+  traj_com_duration : 3
+  traj_foot_duration : 2.5
   step_height : 0.3
 PARAMS:
   urdf_path: /home/pal/deployed_ws/src/talos_controller/etc/talos.urdf

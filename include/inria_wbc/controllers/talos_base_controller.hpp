@@ -47,6 +47,15 @@ namespace tsid {
 
 namespace inria_wbc {
     namespace controllers {
+        // this stores Force/Torque data of the feet
+        struct SensorData {
+            // left foot
+            Eigen::Vector3d lf_torque;
+            Eigen::Vector3d lf_force;
+            // right foot
+            Eigen::Vector3d rf_torque;
+            Eigen::Vector3d rf_force;
+        };
         class TalosBaseController {
         public:
             using opt_params_t = std::map<std::string, double>;

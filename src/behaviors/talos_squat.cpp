@@ -1,14 +1,11 @@
 #include "inria_wbc/behaviors/talos_squat.hpp"
 
-namespace inria_wbc
-{
-    namespace behaviors
-    {
+namespace inria_wbc {
+    namespace behaviors {
 
         static AutoRegister<TalosSquat> __talos_squat("talos-squat");
 
-        TalosSquat::TalosSquat(const inria_wbc::controllers::TalosBaseController::Params &params) :
-            Behavior(std::make_shared<inria_wbc::controllers::TalosPosTracking>(params))
+        TalosSquat::TalosSquat(const inria_wbc::controllers::TalosBaseController::Params& params) : Behavior(std::make_shared<inria_wbc::controllers::TalosPosTracking>(params))
         {
             //////////////////// DEFINE COM TRAJECTORIES  //////////////////////////////////////
             traj_selector_ = 0;
@@ -26,23 +23,22 @@ namespace inria_wbc
             current_trajectory_ = trajectories_[traj_selector_];
         }
 
-        bool TalosSquat::update()
+        bool TalosSquat::update(const controllers::SensorData& sensor_data)
         {
+
             auto ref = current_trajectory_[time_];
             std::static_pointer_cast<inria_wbc::controllers::TalosPosTracking>(controller_)->set_com_ref(ref);
-            if (controller_->solve())
-            {
+
+            if (controller_->solve()) {
                 time_++;
-                if (time_ == current_trajectory_.size())
-                {
+                if (time_ == current_trajectory_.size()) {
                     time_ = 0;
                     traj_selector_ = ++traj_selector_ % trajectories_.size();
                     current_trajectory_ = trajectories_[traj_selector_];
                 }
                 return true;
             }
-            else
-            {
+            else {
                 return false;
             }
         }

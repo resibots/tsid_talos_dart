@@ -25,11 +25,11 @@ namespace inria_wbc {
         {
             cycle_ = {
                 States::INIT, // will be skipped
-                // States::LIFT_UP_LF,
-                // States::LIFT_DOWN_LF,
+                States::LIFT_UP_LF,
+                States::LIFT_DOWN_LF,
                 States::MOVE_COM_LEFT,
-                // States::LIFT_UP_RF,
-                // States::LIFT_DOWN_RF,
+                States::LIFT_UP_RF,
+                States::LIFT_DOWN_RF,
                 States::MOVE_COM_RIGHT};
 
             auto controller = std::static_pointer_cast<inria_wbc::controllers::TalosPosTracking>(controller_);
@@ -100,7 +100,7 @@ namespace inria_wbc {
             assert(_com_trajs.size() == cycle_.size());
         }
 
-        bool WalkOnSpot::update()
+        bool WalkOnSpot::update(const controllers::SensorData& sensor_data)
         {
             auto controller = std::static_pointer_cast<inria_wbc::controllers::TalosPosTracking>(controller_);
             auto t1_traj = std::chrono::high_resolution_clock::now();
@@ -119,7 +119,28 @@ namespace inria_wbc {
             assert(time_ < _rf_trajs[_current_traj].size());
             assert(time_ < _lf_trajs[_current_traj].size());
 
-            controller->set_com_ref(_com_trajs[_current_traj][time_]);
+            auto ref = _com_trajs[_current_traj][time_];
+
+            bool cop_ok = _cop_estimator.update(ref.head(2),
+                controller_->left_ankle().translation(),
+                controller_->right_ankle().translation(),
+                sensor_data.lf_torque, sensor_data.lf_force,
+                sensor_data.rf_torque, sensor_data.rf_force);
+
+            Eigen::Vector2d p(-0.055, -0.055);
+            Eigen::Vector2d d(0.001, 0.001);
+            //Eigen::Vector2d d(0, 0);
+
+            if (!cop_ok) {
+                controller->set_com_ref(ref);
+            }
+            else {
+                Eigen::VectorXd cor = p.array() * (ref.head(2) - _cop_estimator.cop_filtered()).array() + d.array() * _cop_estimator.derror_raw().array();
+                Eigen::VectorXd ref_m = ref + Eigen::Vector3d(cor(0), cor(1), 0);
+                assert(!isnan(ref_m(0)));
+                controller->set_com_ref(ref_m);
+            }
+            //controller->set_com_ref(_com_trajs[_current_traj][time_]);
             controller->set_se3_ref(_lf_trajs[_current_traj][time_], "lf");
             controller->set_se3_ref(_rf_trajs[_current_traj][time_], "rf");
 

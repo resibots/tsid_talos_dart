@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
     ("collision,k", po::value<std::string>()->default_value("fcl"), "collision engine [default:fcl]")
     ("mp4,m", po::value<std::string>(), "save the display to a mp4 video [filename]")
     ("duration,d", po::value<int>()->default_value(20), "duration in seconds [20]")
+    ("push,p", po::value<std::vector<float>>(), "push the robot at t=x1 0.25 s")
     ("ghost,g", "display the ghost (Pinocchio model)")
     ("verbose,v", "verbose mode (controller)")
     ("log,l", po::value<std::vector<std::string>>()->default_value(std::vector<std::string>(),""), "log the trajectory of a dart body [with urdf names] or timing or CoM, example: -l timing -l com -l lf")
@@ -204,18 +205,23 @@ int main(int argc, char* argv[])
     inria_wbc::estimators::Cop cop_estimator;
     auto ft_sensor_left = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_left_6_joint");
     auto ft_sensor_right = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_right_6_joint");
-    inria_wbc::estimators::ButterworthFilter filter_cop_x(0.002, 10), filter_cop_y(0.002, 10);
 
     // the main loop
     using namespace std::chrono;
     while (simu.scheduler().next_time() < vm["duration"].as<int>() && !simu.graphics()->done()) {
         double time_step_solver = 0, time_step_cmd = 0, time_step_simu = 0;
 
+        inria_wbc::controllers::SensorData SensorData = {
+            ft_sensor_left->torque(),
+            ft_sensor_left->force(),
+            ft_sensor_right->torque(),
+            ft_sensor_right->force()};
+
         // step the command
         Eigen::VectorXd cmd;
         if (simu.schedule(simu.control_freq())) {
             auto t1_solver = high_resolution_clock::now();
-            bool solution_found = behavior->update();
+            bool solution_found = behavior->update(SensorData);
             auto q = controller->q(false);
             auto t2_solver = high_resolution_clock::now();
             time_step_solver = duration_cast<microseconds>(t2_solver - t1_solver).count();
@@ -243,11 +249,18 @@ int main(int argc, char* argv[])
             }
             ++it_cmd;
         }
-        // if (simu.scheduler().current_time() > 1 && simu.scheduler().current_time() < 1.25) {
-        //     robot->set_external_force("torso_2_link", Eigen::Vector3d(-100, 0, 0));
-        // }
-        // if (simu.scheduler().current_time() > 1.25 && simu.scheduler().current_time() < 1.5)
-        //     robot->clear_external_forces();
+        bool push = false;
+        if (vm.count("push")) {
+            auto pv = vm["push"].as<std::vector<float>>();
+            for (auto& p : pv) {
+                if (simu.scheduler().current_time() > p && simu.scheduler().current_time() < p + 0.25) {
+                    robot->set_external_force("torso_2_link", Eigen::Vector3d(-100, 0, 0));
+                    push = true;
+                }
+                if (simu.scheduler().current_time() > p + 0.25)
+                    robot->clear_external_forces();
+            }
+        }
 
         // step the simulation
         {
@@ -258,7 +271,8 @@ int main(int argc, char* argv[])
             ++it_simu;
         }
         // simulation frequency for now
-        auto cop = cop_estimator.update(
+
+        bool cop_ok = cop_estimator.update(Eigen::Vector2d::Zero(),
             controller->left_ankle().translation(),
             controller->right_ankle().translation(),
             ft_sensor_left->torque(), ft_sensor_left->force(),
@@ -275,7 +289,7 @@ int main(int argc, char* argv[])
             else if (x.first == "com_tsid")
                 (*x.second) << controller->com().transpose() << std::endl;
             else if (x.first == "cop")
-                (*x.second) << cop.transpose() << std::endl;
+                (*x.second) << cop_estimator.cop_filtered().transpose() << std::endl;
             else if (x.first == "cop_raw")
                 (*x.second) << cop_estimator.cop_raw().transpose() << std::endl;
             else if (x.first == "ft")
@@ -303,8 +317,10 @@ int main(int argc, char* argv[])
             oss << "[Sim: " << t_sim << " ms]" << std::endl;
             oss << "[Solver: " << t_solver << " ms]" << std::endl;
             oss << "[Cmd: " << t_cmd << " ms]" << std::endl;
+            if (push)
+                oss << "pushing..." << std::endl;
 
-            //oss << oss_conf.str();
+                //oss << oss_conf.str();
 #ifdef GRAPHIC
             if (!vm.count("mp4"))
                 simu.set_text_panel(oss.str());

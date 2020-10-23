@@ -119,6 +119,7 @@ int main(int argc, char* argv[])
     Eigen::VectorXd cmd;
 
     while (!simu.graphics()->done()) {
+
         if (simu.schedule(simu.control_freq())) {
             bool solution_found = behavior->update();
             auto q = controller->q(false);
