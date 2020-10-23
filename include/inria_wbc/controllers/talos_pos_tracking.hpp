@@ -12,8 +12,9 @@ namespace inria_wbc {
             TalosPosTracking& operator=(const TalosPosTracking& o) const = delete;
             virtual ~TalosPosTracking(){};
 
+            virtual bool update(const SensorData& sensor_data) override;
+
             std::shared_ptr<tsid::tasks::TaskComEquality> com_task() { return com_task_; }
-            tsid::math::Vector3 com_init() { return com_init_; }
 
             pinocchio::SE3 get_se3_ref(const std::string& task_name);
             tsid::math::Vector3 get_pinocchio_com();
@@ -30,10 +31,9 @@ namespace inria_wbc {
             virtual const opt_params_t& opt_params() const override { return params_.opt_params; }
 
         private:
-            void parse_configuration_yaml(const std::string& sot_config_path) override;
-            void set_stack_configuration() override;
-            void init_references() override;
-            void set_task_traj_map() override;
+            void parse_configuration_yaml(const std::string& sot_config_path);
+            void set_stack_configuration();
+            void init_references();
             void set_default_opt_params(std::map<std::string, double>& p);
 
             // TALOS CONFIG
@@ -67,7 +67,6 @@ namespace inria_wbc {
             std::shared_ptr<tsid::tasks::TaskSE3Equality> lh_task_;
             std::shared_ptr<tsid::tasks::TaskSE3Equality> rh_task_;
             std::shared_ptr<tsid::tasks::TaskSE3Equality> vert_torso_task_;
-
             std::shared_ptr<tsid::tasks::TaskJointPosVelAccBounds> bounds_task_;
 
             // limits (position, velocity, acceleration)
@@ -76,36 +75,15 @@ namespace inria_wbc {
             tsid::math::Vector dq_max_; // max velocity bound
             tsid::math::Vector ddq_max_; // max acceleration bound
 
-            // com ref
-            tsid::math::Vector3 com_init_, com_ref_;
+            // trajectories
             std::shared_ptr<tsid::trajectories::TrajectoryEuclidianConstant> traj_com_;
-
-            // posture ref
-            tsid::math::Vector posture_init_, posture_ref_;
             std::shared_ptr<tsid::trajectories::TrajectoryEuclidianConstant> traj_posture_;
-
-            // floatingb ref
-            pinocchio::SE3 floatingb_init_, floatingb_ref_;
             std::shared_ptr<tsid::trajectories::TrajectorySE3Constant> traj_floatingb_;
-
-            // Left Foot ref
-            pinocchio::SE3 lf_init_, lf_ref_;
             std::shared_ptr<tsid::trajectories::TrajectorySE3Constant> traj_lf_;
-
-            // Right Foot ref
-            pinocchio::SE3 rf_init_, rf_ref_;
             std::shared_ptr<tsid::trajectories::TrajectorySE3Constant> traj_rf_;
-
-            // Left Hand ref
-            pinocchio::SE3 lh_init_, lh_ref_;
             std::shared_ptr<tsid::trajectories::TrajectorySE3Constant> traj_lh_;
-
-            // Right Hand ref
-            pinocchio::SE3 rh_init_, rh_ref_;
             std::shared_ptr<tsid::trajectories::TrajectorySE3Constant> traj_rh_;
-
             std::shared_ptr<tsid::trajectories::TrajectorySE3Constant> traj_torso_;
-
             std::unordered_map<std::string, TaskTrajReferenceSE3> se3_task_traj_map_;
         };
     } // namespace controllers

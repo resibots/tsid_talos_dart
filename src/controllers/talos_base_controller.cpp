@@ -127,7 +127,7 @@ namespace inria_wbc {
             return non_mimic_indexes;
         }
 
-        bool TalosBaseController::solve()
+        bool TalosBaseController::_solve()
         {
             //Compute the current data from the current position and solve to find next position
             assert(tsid_);

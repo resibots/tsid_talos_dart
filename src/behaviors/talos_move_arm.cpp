@@ -27,7 +27,7 @@ namespace inria_wbc {
         {
             auto ref = current_trajectory_[time_];
             std::static_pointer_cast<inria_wbc::controllers::TalosPosTracking>(controller_)->set_se3_ref(ref, "lh");
-            if (controller_->solve()) {
+            if (controller_->update(sensor_data)) {
                 time_++;
                 if (time_ == current_trajectory_.size()) {
                     time_ = 0;

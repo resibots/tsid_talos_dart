@@ -84,7 +84,7 @@ namespace inria_wbc {
             TalosBaseController& operator=(const TalosBaseController& o) = delete;
             virtual ~TalosBaseController(){};
 
-            bool solve();
+            virtual bool update(const SensorData& sensor_data) { return _solve(); };
 
             const pinocchio::SE3& right_ankle() const;
             const pinocchio::SE3& left_ankle() const;
@@ -124,12 +124,9 @@ namespace inria_wbc {
 
         private:
             std::vector<int> get_non_mimics_indexes();
-            virtual void parse_configuration_yaml(const std::string& sot_config_path) = 0;
-            virtual void set_stack_configuration() = 0;
-            virtual void init_references() = 0;
-            virtual void set_task_traj_map() = 0;
 
         protected:
+            bool _solve(); // called by update
             void _reset();
 
             Params params_;

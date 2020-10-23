@@ -169,7 +169,7 @@ namespace inria_wbc {
                 ofs_time_traj << step_traj << std::endl;
             }
 #endif
-            if (controller_->solve()) {
+            if (controller_->update(sensor_data)) {
                 time_++;
                 if (time_ == _com_trajs[_current_traj].size()) {
                     time_ = 0;
