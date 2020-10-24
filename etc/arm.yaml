@@ -1,5 +1,5 @@
 SOT:
-  w_com: 100.0
+  w_com: 1.0
   w_floatingb: 100.0
   w_posture: 0.75
   w_forceRef_feet: 1e-3
@@ -28,7 +28,7 @@ STABILIZER:
   d_y: 0.0
 BEHAVIOR:
   name : talos-move-arm
-  trajectory_duration : 6
+  trajectory_duration : 0.5
   motion_size : 0.05
 PARAMS:
   urdf_path: /home/pal/deployed_ws/src/talos_controller/etc/talos.urdf

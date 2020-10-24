@@ -338,7 +338,12 @@ namespace inria_wbc {
             }
 
             // solve everything
-            return _solve();
+            bool solved = _solve();
+
+            // set the CoM back (useful if the behavior does not the set the ref at each timestep)
+            set_com_ref(com_ref);
+
+            return solved;
         }
 
         const pinocchio::SE3& TalosPosTracking::se3_ref(const std::string& task_name) const

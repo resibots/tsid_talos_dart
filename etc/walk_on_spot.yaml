@@ -29,9 +29,9 @@ STABILIZER:
   d_y: 0.0
 BEHAVIOR:
   name : walk-on-spot
-  traj_com_duration : 4
-  traj_foot_duration : 4
-  step_height : 0.3
+  traj_com_duration : 3
+  traj_foot_duration : 1.5
+  step_height : 0.45
 PARAMS:
   urdf_path: /home/pal/deployed_ws/src/talos_controller/etc/talos.urdf
   srdf_path: /home/pal/deployed_ws/src/talos_controller/etc/talos_configurations.srdf

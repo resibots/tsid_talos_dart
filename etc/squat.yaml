@@ -28,7 +28,7 @@ STABILIZER:
   d_y: 0.0
 BEHAVIOR:
   name : talos-squat
-  trajectory_duration : 5
+  trajectory_duration : 0.5
   motion_size : 0.2
 PARAMS:
   urdf_path: /home/pal/deployed_ws/src/talos_controller/etc/talos.urdf
