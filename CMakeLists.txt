@@ -35,9 +35,6 @@ set(INRIA_WBC_HEADERS
                             include/inria_wbc/utils/trajectory_handler.hpp
                             include/inria_wbc/utils/utils.hpp
                             include/inria_wbc/estimators/cop.hpp
-                            include/inria_wbc/estimators/butterworth_filter.hpp
-
-
 )
 
 set(INRIA_WBC_SOURCES
@@ -46,10 +43,7 @@ set(INRIA_WBC_SOURCES
                             src/behaviors/talos_squat.cpp
                             src/behaviors/talos_move_arm.cpp
                             src/behaviors/talos_walk_on_spot.cpp
-                            src/estimators/cop.cpp
-                            src/estimators/butterworth_filter.cpp
-
-
+                            src/estimators/cop.cpp                        
 )
 
 set(EXAMPLE_LIST 
