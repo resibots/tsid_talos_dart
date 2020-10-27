@@ -25,8 +25,8 @@ STABILIZER:
   filter_size: 5
   p_x: 0.08
   p_y: 0.08
-  d_x: 0.0
-  d_y: 0.0
+  d_x: 0.001
+  d_y: 0.001
 BEHAVIOR:
   name : walk-on-spot
   traj_com_duration : 3

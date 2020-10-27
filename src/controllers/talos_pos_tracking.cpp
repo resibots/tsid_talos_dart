@@ -327,9 +327,10 @@ namespace inria_wbc {
                 model_joint_pos("leg_right_6_joint").translation(),
                 sensor_data.lf_torque, sensor_data.lf_force,
                 sensor_data.rf_torque, sensor_data.rf_force);
-
+            static std::ofstream ofs("cop_d.dat");
             // modify the CoM reference (stabilizer) if the CoP is valid
             if (_use_stabilizer && cop_ok && !isnan(_cop_estimator.cop_filtered()(0)) && !isnan(_cop_estimator.cop_filtered()(1))) {
+                ofs << _cop_estimator.derror_filtered().transpose() << std::endl;
                 Eigen::VectorXd cor = _stabilizer_p.array() * (com_ref.head(2) - _cop_estimator.cop_filtered()).array()
                     + _stabilizer_d.array() * _cop_estimator.derror_filtered().array();
                 Eigen::VectorXd ref_m = com_ref - Eigen::Vector3d(cor(0), cor(1), 0);

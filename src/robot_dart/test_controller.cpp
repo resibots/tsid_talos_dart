@@ -287,7 +287,7 @@ int main(int argc, char* argv[])
                 (*x.second) << ft_sensor_left->torque().transpose() << " " << ft_sensor_left->force().transpose() << " "
                             << ft_sensor_right->torque().transpose() << " " << ft_sensor_right->force().transpose() << std::endl;
             else
-                (*x.second) << robot->body_pose(x.first).translation() << "\t" << robot->body_pose(x.first).rotation() << std::endl;
+                (*x.second) << robot->body_pose(x.first).translation().transpose() << std::endl;
         }
         // print timing information
         time_simu += time_step_simu;

@@ -30,7 +30,7 @@ namespace inria_wbc {
             // derivative of the error using the filtered values
             Eigen::Vector2d prev_error = (prev_cop_filtered - _prev_ref);
             Eigen::Vector2d error = (_cop_filtered - ref);
-            _derror_raw = (error - prev_error) / _sample_time;
+            _derror_raw = (prev_cop_filtered - _cop_filtered) / _sample_time; //(error - prev_error) / _sample_time;
             if (_cop_buffer.size() > 1) // first value does not make sense
                 _store(_derror_raw, _derror_buffer, _history_size);
             _derror_filtered
