@@ -16,7 +16,6 @@
 #endif
 
 #include "inria_wbc/behaviors/factory.hpp"
-#include "inria_wbc/estimators/butterworth_filter.hpp"
 #include "inria_wbc/estimators/cop.hpp"
 
 Eigen::VectorXd compute_spd(dart::dynamics::SkeletonPtr robot, const Eigen::VectorXd& targetpos)
