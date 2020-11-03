@@ -1,6 +1,7 @@
 /* Pinocchio !!!! NEED TO BE INCLUDED BEFORE BOOST*/
 #include <pinocchio/algorithm/joint-configuration.hpp> // integrate
 #include <pinocchio/algorithm/kinematics.hpp>
+#include <pinocchio/math/rpy.hpp>
 #include <pinocchio/multibody/model.hpp>
 #include <pinocchio/parsers/srdf.hpp>
 #include <pinocchio/parsers/urdf.hpp>
@@ -318,8 +319,12 @@ namespace inria_wbc {
 
         bool TalosPosTracking::update(const SensorData& sensor_data)
         {
-            // get the actual reference
             auto com_ref = com_task_->getReference().pos;
+            auto ref_torso = robot_->framePosition(tsid_->data(), robot_->model().getFrameId(torso_frame_name_));
+
+            // we try to get close to the actual position as measured by the sensor
+            // we could use the tsid/pinocchio position here: better? worse?
+            //set_posture_ref(sensor_data.positions, "traj_posture");
 
             // estimate the CoP / ZMP
             bool cop_ok = _cop_estimator.update(com_ref.head(2),
@@ -327,14 +332,24 @@ namespace inria_wbc {
                 model_joint_pos("leg_right_6_joint").translation(),
                 sensor_data.lf_torque, sensor_data.lf_force,
                 sensor_data.rf_torque, sensor_data.rf_force);
-            static std::ofstream ofs("cop_d.dat");
             // modify the CoM reference (stabilizer) if the CoP is valid
             if (_use_stabilizer && cop_ok && !isnan(_cop_estimator.cop_filtered()(0)) && !isnan(_cop_estimator.cop_filtered()(1))) {
-                ofs << _cop_estimator.derror_filtered().transpose() << std::endl;
-                Eigen::VectorXd cor = _stabilizer_p.array() * (com_ref.head(2) - _cop_estimator.cop_filtered()).array()
-                    + _stabilizer_d.array() * _cop_estimator.derror_filtered().array();
-                Eigen::VectorXd ref_m = com_ref - Eigen::Vector3d(cor(0), cor(1), 0);
+                // the expected zmp given CoM in x is x - z_c / g \ddot{x} (LIPM equations)
+                // CoM = CoP+zc/g \ddot{x}
+                // see Biped Walking Pattern Generation by using Preview Control of Zero-Moment Point
+                // see eq.24 of Biped Walking Stabilization Based on Linear Inverted Pendulum Tracking
+                // see eq. 21 of Stair Climbing Stabilization of the HRP-4 Humanoid Robot using Whole-body Admittance Control
+                Eigen::Vector2d a = tsid_->data().acom[0].head<2>();
+                Eigen::Vector3d com = tsid_->data().com[0];
+                Eigen::Vector2d ref = com.head<2>() - com(2) / 9.81 * a; //com because this is the target
+                auto cop = _cop_estimator.cop_filtered();
+                Eigen::Vector2d cor = _stabilizer_p.array() * (ref.head(2) - _cop_estimator.cop_filtered()).array();
 
+                // [not classic] we correct by the velocity of the CoM instead of the CoP because we have an IMU for this
+                Eigen::Vector2d cor_v = _stabilizer_d.array() * sensor_data.velocity.head(2).array();
+                cor += cor_v;
+
+                Eigen::VectorXd ref_m = com_ref - Eigen::Vector3d(cor(0), cor(1), 0);
                 set_com_ref(ref_m);
             }
 

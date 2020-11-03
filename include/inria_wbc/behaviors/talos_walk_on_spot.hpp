@@ -33,7 +33,10 @@ namespace inria_wbc {
             std::vector<std::vector<pinocchio::SE3>> _rf_trajs;
             float traj_com_duration_ = 3; //will be changed if specified in yaml
             float traj_foot_duration_ = 3; //will be changed if specified in yaml
+            float stop_duration_ = 2;
             float step_height_ = 0.1;
+            float stop_height_ = 0.01;
+
             estimators::Cop _cop_estimator;
 
             // State machine stats for walking on the spot cycle

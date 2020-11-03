@@ -50,6 +50,7 @@ set(EXAMPLE_LIST
                 src/robot_dart/evaluate_cop.cpp
                 src/robot_dart/test_controller.cpp
                 src/robot_dart/test_masses.cpp
+
 )
 
 if(${COMPILE_ROBOT_DART_EXAMPLE} STREQUAL "ON")

@@ -55,6 +55,11 @@ namespace inria_wbc {
             // right foot
             Eigen::Vector3d rf_torque;
             Eigen::Vector3d rf_force;
+            // accelerometer
+            Eigen::VectorXd acceleration;
+            Eigen::VectorXd velocity;
+            // joint positions (excluding floating base)
+            Eigen::VectorXd positions;
         };
         class TalosBaseController {
         public:

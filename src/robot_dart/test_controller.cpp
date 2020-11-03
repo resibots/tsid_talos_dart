@@ -5,11 +5,13 @@
 #include <cstdlib>
 #include <iostream>
 #include <signal.h>
+#include <tsid/robots/robot-wrapper.hpp>
 
 #include <robot_dart/control/pd_control.hpp>
 #include <robot_dart/robot.hpp>
 #include <robot_dart/robot_dart_simu.hpp>
 #include <robot_dart/sensor/force_torque.hpp>
+#include <robot_dart/sensor/imu.hpp>
 
 #ifdef GRAPHIC
 #include <robot_dart/gui/magnum/graphics.hpp>
@@ -205,6 +207,14 @@ int main(int argc, char* argv[])
     inria_wbc::estimators::Cop cop_estimator;
     auto ft_sensor_left = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_left_6_joint");
     auto ft_sensor_right = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_right_6_joint");
+    robot_dart::sensor::IMUConfig imu_config;
+    imu_config.body = robot->body_node("imu_link"); // choose which body the sensor is attached to
+    imu_config.frequency = 1000; // update rate of the sensor
+    auto imu = simu.add_sensor<robot_dart::sensor::IMU>(imu_config);
+    if (log_files.find("q0_dart") != log_files.end())
+        (*log_files["q0_dart"]) << controller->q0().transpose() << std::endl;
+    if (log_files.find("q0_pinocchio") != log_files.end())
+        (*log_files["q0_pinocchio"]) << controller->robot()->model().referenceConfigurations["pal_start"].transpose() << std::endl;
 
     // the main loop
     using namespace std::chrono;
@@ -215,7 +225,10 @@ int main(int argc, char* argv[])
             ft_sensor_left->torque(),
             ft_sensor_left->force(),
             ft_sensor_right->torque(),
-            ft_sensor_right->force()};
+            ft_sensor_right->force(),
+            imu->linear_acceleration(),
+            robot->com_velocity().tail<3>(),
+            robot->skeleton()->getPositions().tail(ncontrollable)};
 
         // step the command
         Eigen::VectorXd cmd;
@@ -286,7 +299,7 @@ int main(int argc, char* argv[])
             else if (x.first == "ft")
                 (*x.second) << ft_sensor_left->torque().transpose() << " " << ft_sensor_left->force().transpose() << " "
                             << ft_sensor_right->torque().transpose() << " " << ft_sensor_right->force().transpose() << std::endl;
-            else
+            else if (x.first != "q0_dart" && x.first != "q0_pinocchio")
                 (*x.second) << robot->body_pose(x.first).translation().transpose() << std::endl;
         }
         // print timing information

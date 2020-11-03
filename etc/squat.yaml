@@ -22,14 +22,14 @@ SOT:
 STABILIZER:
   activated: true
   filter_size: 5
-  p_x: 0.055
-  p_y: 0.055
-  d_x: 0.0
-  d_y: 0.0
+  p_x: 0.05
+  p_y: 0.05
+  d_x: 0.04
+  d_y: 0.04
 BEHAVIOR:
   name : talos-squat
-  trajectory_duration : 0.5
-  motion_size : 0.2
+  trajectory_duration : 0.4
+  motion_size : 0.25
 PARAMS:
   urdf_path: /home/pal/deployed_ws/src/talos_controller/etc/talos.urdf
   srdf_path: /home/pal/deployed_ws/src/talos_controller/etc/talos_configurations.srdf
