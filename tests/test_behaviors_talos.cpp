@@ -150,8 +150,8 @@ void test_behavior(const std::string& controller_path,
 
     // add sensors to the robot (robot_dart)
     // Force/torque (feet)
-    auto ft_sensor_left = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_left_6_joint");
-    auto ft_sensor_right = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_right_6_joint");
+    auto ft_sensor_left = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_left_6_joint", cst::frequency);
+    auto ft_sensor_right = simu.add_sensor<robot_dart::sensor::ForceTorque>(robot, "leg_right_6_joint", cst::frequency);
     // IMU
     robot_dart::sensor::IMUConfig imu_config;
     imu_config.body = robot->body_node("imu_link");
