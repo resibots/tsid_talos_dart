@@ -166,7 +166,9 @@ void test_behavior(utest::test_t test,
         sensor_data["acceleration"] = Eigen::Vector3d::Zero();
         sensor_data["velocity"] = Eigen::Vector3d::Zero();
         // joint positions (excluding floating base)
-        sensor_data["positions"] = robot->skeleton()->getPositions().tail(ncontrollable);
+        sensor_data["positions"] = robot->positions(controller->controllable_dofs(false));
+        sensor_data["joint_velocities"] = robot->velocities(controller->controllable_dofs(false));
+
 
         // command
         if (simu.schedule(simu.control_freq())) {
@@ -393,6 +395,7 @@ int main(int argc, char** argv)
         std::cout << "Single test:" << name << std::endl;
         auto test1 = utest::make_test(name);
 #ifdef GRAPHIC
+        std::cout<<"running without the test suite" << std::endl;
         test_behavior(test1, args[0], args[1], args[2], args[3], args[4], ref, std::shared_ptr<y::Emitter>());
 #else
         UTEST_REGISTER(test_suite, test1, test_behavior(test1, args[0], args[1], args[2], args[3], args[4], ref, std::shared_ptr<y::Emitter>()));
@@ -400,6 +403,10 @@ int main(int argc, char** argv)
         utest::write_report(test_suite, std::cout, true);
 #endif
         return 0;
+    } else {
+#ifdef GRAPHIC
+    IWBC_ERROR("GRAPHICS is possible only in single mode (-s ...)");
+#endif
     }
 
     ///// the default behavior is to run all the combinations in different threads
@@ -408,7 +415,7 @@ int main(int argc, char** argv)
     std::string controller = "../../etc/franka/pos_tracker.yaml";
     auto behaviors = {"../../etc/franka/cartesian_line.yaml"};
     auto collision = {"fcl"};
-    auto actuators = {"servo", "velocity", "spd"};
+    auto actuators = {"servo", "velocity", "spd", "torque"};
     std::string urdf = "franka/franka.urdf";
 
     (*yout) << y::Key << controller << y::Value << y::BeginMap;

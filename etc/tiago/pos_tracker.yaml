@@ -1,0 +1,14 @@
+CONTROLLER:
+  name: pos-tracker
+  base_path: /home/pal/inria_wbc/etc/tiago
+  tasks: tasks.yaml
+  frames: frames.yaml
+  urdf: tiago_steel.urdf
+  configurations: configurations.srdf 
+  closed_loop: false
+  ref_config: start
+  floating_base: false
+  floating_base_joint_name: ""
+  dt: 0.001
+  verbose: false
+  mimic_dof_names : []

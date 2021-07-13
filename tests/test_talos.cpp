@@ -518,8 +518,12 @@ int main(int argc, char** argv)
         utest::write_report(test_suite, std::cout, true);
 #endif
             return 0;
+    } else {
+#ifdef GRAPHIC
+    IWBC_ERROR("GRAPHICS is possible only in single mode (-s ...)");
+#endif
     }
-
+    
     ///// the default behavior is to run all the combinations in different threads
 
     // this is relative to the "tests" directory

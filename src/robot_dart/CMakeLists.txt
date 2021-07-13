@@ -2,6 +2,7 @@
 set(EXAMPLE_LIST
 	talos.cpp
     franka.cpp
+    tiago.cpp
 )
 
 

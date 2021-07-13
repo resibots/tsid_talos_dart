@@ -1,0 +1,40 @@
+ee:
+    type: se3
+    tracked: gripper_link
+    weight: 100.0
+    kp: 1300.0
+    mask: 111111
+posture:
+    type: posture
+    weight: 10.00
+    kp: 10.0
+    ref: start
+bounds:
+    type: bounds
+    weight: 10000
+self_collision-gripper:
+    type: self-collision
+    tracked: gripper_link
+    radius: 0.1
+    avoided: 
+        base_link: 0.330
+        torso_lift_link: 0.25
+        v_torso_1: 0.2
+        v_torso_2: 0.2
+        head_2_link: 0.15
+    weight: 100
+    kp: 700.0
+    p: 3
+self_collision-5:
+    type: self-collision
+    tracked: arm_5_link
+    radius: 0.1
+    avoided: 
+        base_link: 0.330
+        torso_lift_link: 0.25
+        v_torso_1: 0.2
+        v_torso_2: 0.2
+        head_2_link: 0.15
+    weight: 100
+    kp: 700.0
+    p: 3

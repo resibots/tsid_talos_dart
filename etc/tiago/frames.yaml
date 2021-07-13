@@ -1,0 +1,7 @@
+# virtual frames
+v_torso_1:
+  ref: "torso_lift_link"
+  pos: [0.0, 0.0, -0.2]
+v_torso_2:
+  ref: "torso_lift_link"
+  pos: [0.0, 0.0, -0.4]
